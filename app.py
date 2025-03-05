@@ -1,7 +1,7 @@
 # app.py
 
 import streamlit as st
-import datetime  
+import datetime
 import os
 from utils import qa_chain, reload_data
 
@@ -41,7 +41,9 @@ with st.sidebar:
     st.title("📁 Document Manager")
 
     st.markdown("### 📄 Document Upload")
-    st.caption("Upload PDF documents to enhance chat responses with relevant information")
+    st.caption(
+        "Upload PDF documents to enhance chat responses with relevant information"
+    )
 
     if "processed_files" not in st.session_state:
         st.session_state.processed_files = set()  # Store processed filenames
@@ -60,7 +62,9 @@ with st.sidebar:
         st.success("Uploads cleared!")
 
     # Process new files only if they haven't been processed
-    new_files = [f for f in uploaded_files if f.name not in st.session_state.processed_files]
+    new_files = [
+        f for f in uploaded_files if f.name not in st.session_state.processed_files
+    ]
 
     if new_files:
         with st.spinner("Processing uploaded files..."):
@@ -94,10 +98,23 @@ with st.sidebar:
 
     st.divider()
 
+    st.markdown(
+        """
+    **Tips:**
+    - Upload documents first for best results
+    - Switch personas anytime
+    - Files are kept private
+    """
+    )
+
 # Main App UI
 if not st.session_state.messages:
     current_hour = datetime.datetime.now().hour
-    greeting = "Good Morning 🌞" if 5 <= current_hour < 12 else "Good Afternoon 🌇" if 12 <= current_hour < 18 else "Good Night 🌙"
+    greeting = (
+        "Good Morning 🌞"
+        if 5 <= current_hour < 12
+        else "Good Afternoon 🌇" if 12 <= current_hour < 18 else "Good Night 🌙"
+    )
 
     st.markdown(
         f"""
@@ -129,9 +146,18 @@ if not st.session_state.messages:
                 with cols[j]:
                     question = questions[i + j]
                     if st.button(question, use_container_width=True, key=f"q_{i+j}"):
-                        st.session_state.messages.append({"role": "user", "content": question})
-                        response = st.session_state.chatbot.invoke({"query": question})["result"]
-                        st.session_state.messages.append({"role": "assistant", "content": f"**Response:**\n\n{response}"})
+                        st.session_state.messages.append(
+                            {"role": "user", "content": question}
+                        )
+                        response = st.session_state.chatbot.invoke({"query": question})[
+                            "result"
+                        ]
+                        st.session_state.messages.append(
+                            {
+                                "role": "assistant",
+                                "content": f"**Response:**\n\n{response}",
+                            }
+                        )
                         st.rerun()
 
 # Display chat history
@@ -143,5 +169,7 @@ for message in st.session_state.messages:
 if prompt := st.chat_input("Type your message..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     response = st.session_state.chatbot.invoke({"query": prompt})["result"]
-    st.session_state.messages.append({"role": "assistant", "content": f"**Response:**\n\n{response}"})
+    st.session_state.messages.append(
+        {"role": "assistant", "content": f"**Response:**\n\n{response}"}
+    )
     st.rerun()
