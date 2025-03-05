@@ -3,6 +3,7 @@ langchain_core
 python-dotenv
 streamlit
 langchain_community
+langchain_text_splitters
 pypdf
 faiss-cpu
 groq
