@@ -15,6 +15,9 @@ st.set_page_config(page_title="KrissBuddy")
 st.markdown(
     """
     <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
         button:hover {
             border: 2px solid #87CEEB !important;
             color: #87CEEB !important;
@@ -27,6 +30,7 @@ st.markdown(
         div[data-testid="stTextInput"] > div:hover {
             border: 2px solid #87CEEB !important;
         }
+
     </style>
     """,
     unsafe_allow_html=True,
