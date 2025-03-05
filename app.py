@@ -97,8 +97,8 @@ with st.sidebar:
                 st.session_state["files_uploaded_processed"] = True
             except Exception as e:
                 st.error(f"Error processing uploaded files: {e}")
-            finally:
-                st.rerun()
+            # finally:
+            #     #st.rerun()
 
     st.divider()
 
