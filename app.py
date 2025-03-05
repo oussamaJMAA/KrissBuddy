@@ -4,9 +4,8 @@ import streamlit as st
 import datetime  # For time detection
 import os
 from utils import qa_chain, reload_data
-os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
-os.environ['GROQ_API_KEY'] = st.secrets['GROQ_API_KEY']
-# Start with the initially imported chain
+
+# Start with the initially imported chain 
 chatbot = qa_chain
 
 st.set_page_config(page_title="KrissBuddy")
@@ -60,8 +59,10 @@ with st.sidebar:
     st.title("📁 Document Manager")
 
     st.markdown("### 📄 Document Upload")
-    st.caption("Upload PDF documents to enhance chat responses with relevant information")
-    
+    st.caption(
+        "Upload PDF documents to enhance chat responses with relevant information"
+    )
+
     # Initialize a session flag to track processing
     if "files_uploaded_processed" not in st.session_state:
         st.session_state["files_uploaded_processed"] = False
@@ -73,7 +74,7 @@ with st.sidebar:
         key="uploaded_files",  # assign a key to the uploader
         label_visibility="collapsed",
     )
-    
+
     # Button to clear the processed flag (allowing new uploads to be processed)
     if st.button("Clear Uploads"):
         st.session_state["files_uploaded_processed"] = False
@@ -98,8 +99,6 @@ with st.sidebar:
                 st.error(f"Error processing uploaded files: {e}")
             finally:
                 st.rerun()
-
-        
 
     st.divider()
 
@@ -161,7 +160,7 @@ if not st.session_state.messages:
         unsafe_allow_html=True,
     )
 
-    # Recommended questions 
+    # Recommended questions
     questions = [
         "How do I explain Kriss.ai's setup fee and monthly pricing in a DM?",
         "What's the best way to describe Kriss.ai's key features in a short message?",

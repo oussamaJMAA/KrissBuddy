@@ -1,5 +1,4 @@
 # llama_groq.py
-
 from langchain_groq import ChatGroq
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -10,12 +9,16 @@ from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 import os
+import streamlit as st
 
 # Load environment variables
 load_dotenv()
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 # Initialize LLM
 llm = ChatGroq(model_name="llama3-8b-8192")
+
 
 # Load and process documents from the specified directory
 def load_documents(data_dir="./data"):
@@ -23,6 +26,7 @@ def load_documents(data_dir="./data"):
     docs = loader.load()
     splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
     return splitter.split_documents(docs)
+
 
 # Initialize or rebuild the FAISS vector store
 def initialize_vectorstore(chunks, faiss_path="./faiss_index", rebuild=False):
@@ -37,6 +41,7 @@ def initialize_vectorstore(chunks, faiss_path="./faiss_index", rebuild=False):
         faiss_index = FAISS.from_documents(documents=chunks, embedding=embeddings)
         faiss_index.save_local(faiss_path)
     return faiss_index
+
 
 # Custom Prompt with Memory
 custom_prompt = PromptTemplate(
@@ -82,6 +87,7 @@ qa_chain = RetrievalQA.from_chain_type(
         "memory": memory,
     },
 )
+
 
 # Function to reload data when new files are uploaded.
 def reload_data(data_dir="./data", faiss_path="./faiss_index"):
