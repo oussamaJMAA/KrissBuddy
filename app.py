@@ -4,7 +4,8 @@ import streamlit as st
 import datetime  # For time detection
 import os
 from utils import qa_chain, reload_data
-
+os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
+os.environ['GROQ_API_KEY'] = st.secrets['GROQ_API_KEY']
 # Start with the initially imported chain
 chatbot = qa_chain
 
