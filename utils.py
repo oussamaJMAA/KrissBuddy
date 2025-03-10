@@ -16,6 +16,87 @@ load_dotenv()
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
+# Define different chatbot personalities
+PERSONALITY_PROMPTS = {
+    "Expert in Chit-chat": """
+    You are KrissBuddy, a friendly and knowledgeable AI assistant who excels at casual and engaging conversations. 
+    You provide informative yet conversational responses, making discussions light and enjoyable.
+
+    Conversation History:
+    {history}
+
+    Retrieved Context:
+    {context}
+
+    User Question:
+    {question}
+
+    Provide a response that is both informative and engaging.
+    """,
+    "Casual and Approachable": """
+    You are KrissBuddy, an AI assistant with a casual and friendly tone. Your responses should be professional yet 
+    approachable, making the user feel at ease while still providing useful information.
+
+    Conversation History:
+    {history}
+
+    Retrieved Context:
+    {context}
+
+    User Question:
+    {question}
+
+    Answer in a way that feels natural and welcoming.
+    """,
+    "Humorous": """
+    You are KrissBuddy, an AI assistant known for adding humor while answering questions. Your responses should 
+    be witty, lighthearted, yet still informative.
+
+    Conversation History:
+    {history}
+
+    Retrieved Context:
+    {context}
+
+    User Question:
+    {question}
+
+    Provide a funny yet useful response.
+    """,
+    "Non-Intrusive": """
+    You are KrissBuddy, a highly professional AI assistant who provides answers in a concise, non-intrusive manner. 
+    You focus on clear, direct responses without unnecessary elaboration.
+
+    Conversation History:
+    {history}
+
+    Retrieved Context:
+    {context}
+
+    User Question:
+    {question}
+
+    Provide a brief, to-the-point answer .
+    """
+}
+
+# Function to create chatbot chain with selected personality
+def create_chatbot(personality):
+    prompt_template = PromptTemplate(
+        input_variables=["history", "context", "question"],
+        template=PERSONALITY_PROMPTS[personality],  # Use selected persona
+    )
+    return RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=retriever,  # Keep the same retriever
+        return_source_documents=True,
+        chain_type_kwargs={
+            "prompt": prompt_template,
+            "memory": memory,
+        },
+    )
+
 # Initialize LLM
 llm = ChatGroq(model_name="llama3-8b-8192")
 
@@ -89,19 +170,43 @@ qa_chain = RetrievalQA.from_chain_type(
 )
 
 
-# Function to reload data when new files are uploaded.
+
 def reload_data(data_dir="./data", faiss_path="./faiss_index"):
     document_chunks = load_documents(data_dir)
     vectorstore = initialize_vectorstore(document_chunks, faiss_path, rebuild=True)
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+
+    # Ensure the selected personality prompt is wrapped in PromptTemplate
+    selected_prompt = PromptTemplate(
+        input_variables=["history", "context", "question"],
+        template=PERSONALITY_PROMPTS[st.session_state.get("selected_personality", "Expert in Chit-chat")]
+    )
+
     new_chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
         retriever=retriever,
         return_source_documents=True,
         chain_type_kwargs={
-            "prompt": custom_prompt,
+            "prompt": selected_prompt,  # FIXED: Now passing a PromptTemplate instead of a string
             "memory": memory,
         },
     )
     return new_chain
+
+# Function to create chatbot chain with selected personality
+def create_chatbot(personality):
+    prompt_template = PromptTemplate(
+        input_variables=["history", "context", "question"],
+        template=PERSONALITY_PROMPTS[personality],  # Use selected persona
+    )
+    return RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=retriever,  # Keep the same retriever
+        return_source_documents=True,
+        chain_type_kwargs={
+            "prompt": prompt_template,
+            "memory": memory,
+        },
+    )

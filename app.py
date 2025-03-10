@@ -3,7 +3,7 @@
 import streamlit as st
 import datetime
 import os
-from utils import qa_chain, reload_data
+from utils import qa_chain, reload_data, create_chatbot
 
 # Start with the initially imported chain
 if "chatbot" not in st.session_state:
@@ -94,11 +94,26 @@ with st.sidebar:
     st.divider()
 
     st.markdown("### 🦸 Chatbot Persona")
+
+    if "selected_personality" not in st.session_state:
+        st.session_state.selected_personality = "Expert in Chit-chat"
+
     persona = st.selectbox(
         "Select Assistant Personality:",
-        ("General Assistant", "Medical Expert", "Technical Support", "Sales Advisor"),
-        label_visibility="collapsed",
+        ("Expert in Chit-chat", "Casual and Approachable", "Humorous", "Non-Intrusive"),
+        index=[
+            "Expert in Chit-chat",
+            "Casual and Approachable",
+            "Humorous",
+            "Non-Intrusive",
+        ].index(st.session_state.selected_personality),
     )
+
+    # If personality changes, update prompt dynamically (NO FAISS RELOAD)
+    if persona != st.session_state.selected_personality:
+        st.session_state.selected_personality = persona
+        st.session_state.chatbot = create_chatbot(persona)  # Only update prompt
+        st.rerun()  # Refresh UI
 
     st.divider()
 
@@ -150,30 +165,46 @@ if not st.session_state.messages:
                 with cols[j]:
                     question = questions[i + j]
                     if st.button(question, use_container_width=True, key=f"q_{i+j}"):
+                        # Append user message only once
                         st.session_state.messages.append(
                             {"role": "user", "content": question}
                         )
-                        response = st.session_state.chatbot.invoke({"query": question})[
-                            "result"
-                        ]
+
+                        with st.spinner("Thinking... 🤔"):
+                            response = st.session_state.chatbot.invoke(
+                                {"query": question}
+                            )["result"]
+
+                        formatted_response = response.replace(
+                            "\n", "  \n"
+                        )  # Ensure proper formatting
                         st.session_state.messages.append(
                             {
                                 "role": "assistant",
-                                "content": f"**Response:**\n\n{response}",
+                                "content": f"**Response:**\n\n{formatted_response}",
                             }
                         )
+
                         st.rerun()
+
 
 # Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        st.write(message["content"])
+
 
 # Chat Input
 if prompt := st.chat_input("Type your message..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
-    response = st.session_state.chatbot.invoke({"query": prompt})["result"]
+
+    with st.spinner("Thinking... 🤔"):
+        response = st.session_state.chatbot.invoke({"query": prompt})["result"]
+
+    formatted_response = response.replace("\n", "  \n")  # Ensure proper formatting
+    print("formatted_response", formatted_response)
     st.session_state.messages.append(
-        {"role": "assistant", "content": f"**Response:**\n\n{response}"}
+        {"role": "assistant", "content": f"**Response:**\n\n{formatted_response}"}
     )
+
     st.rerun()
